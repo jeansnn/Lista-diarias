@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestão de Turma</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1b5e20;
+            --primary-light: #2e7d32;
+            --primary-dark: #0d4511;
+            --bg: #f5f7fa;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --highlight: #f0fdf4;
+            --border-priority: #4caf50;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-light: #f1f5f9;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0;
+            font-family: 'Inter', 'Segoe UI', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        body { 
+            margin: 0; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #eef2f6 100%);
+            color: var(--text); 
+            padding-bottom: 85px; 
+            padding-top: 12px;
+            min-height: 100vh;
+        }
+
+        .container { 
+            padding: 12px 16px; 
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .section { display: none; animation: slideUp 0.25s ease-out; }
+        .section.active { display: block; }
+
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(12px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Cards */
+        .card { 
+            background: var(--card); 
+            border-radius: 20px; 
+            padding: 20px; 
+            margin-bottom: 16px; 
+            box-shadow: var(--shadow-md); 
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover { box-shadow: var(--shadow-lg); }
+
+        .card-title { 
+            font-size: 17px; 
+            font-weight: 600; 
+            margin-bottom: 16px; 
+            color: var(--primary-dark); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            justify-content: space-between;
+            letter-spacing: -0.01em;
+        }
+
+        .card-title i { color: var(--primary); font-size: 22px; }
+
+        /* Badge de lotação */
+        .lotacao-badge { 
+            background: var(--primary); 
+            color: white; 
+            padding: 6px 14px; 
+            border-radius: 30px; 
+            font-size: 13px; 
+            font-weight: 600;
+            display: flex; 
+            align-items: center; 
+            gap: 6px;
+            box-shadow: var(--shadow-sm);
+        }
+        .lotacao-cheia { background: var(--danger) !important; }
+
+        /* Inputs estilizados */
+        input, select, textarea { 
+            width: 100%; 
+            padding: 14px 16px; 
+            border: 1.5px solid var(--border); 
+            border-radius: 14px; 
+            font-size: 15px; 
+            margin-bottom: 14px; 
+            outline: none; 
+            background: white;
+            transition: all 0.2s;
+            color: var(--text);
+        }
+        
+        input:focus, select:focus, textarea:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.15);
+        }
+
+        /* Sugestões Customizadas (Autocomplete) */
+        .input-wrapper { position: relative; }
+        .sugestoes-box {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            margin-top: 4px;
+        }
+        .sugestao-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--gray-light);
+            font-size: 15px;
+            color: var(--text);
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sugestao-item i { font-size: 18px; color: var(--text-secondary); }
+        .sugestao-item:last-child { border-bottom: none; }
+        .sugestao-item:hover { background: var(--highlight); color: var(--primary-dark); }
+
+        /* Botões */
+        .btn { 
+            width: 100%; 
+            padding: 16px 20px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 14px; 
+            font-size: 15px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 8px; 
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            letter-spacing: 0.01em;
+        }
+        
+        .btn:active { 
+            transform: scale(0.98);
+            background: var(--primary-dark);
+            box-shadow: none;
+        }
+        
+        .btn-outline-danger { 
+            background: transparent; 
+            color: var(--danger); 
+            border: 2px solid var(--danger); 
+            padding: 14px; 
+            margin-top: 8px; 
+            box-shadow: none;
+        }
+        
+        .btn-outline-danger:active { background: rgba(239, 68, 68, 0.1); }
+        
+        .btn-sutil { 
+            background: white; 
+            color: var(--primary); 
+            border: 2px solid var(--border); 
+            box-shadow: var(--shadow-sm); 
+            padding: 14px; 
+            margin-top: 12px; 
+        }
+        
+        .btn-sutil:active { background: var(--gray-light); border-color: var(--primary); }
+        
+        .btn-zerar { 
+            background: var(--warning); 
+            color: white; 
+            border: none; 
+            border-radius: 30px; 
+            padding: 8px 16px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .btn-zerar:active { background: #e68900; transform: scale(0.95); }
+
+        /* List items */
+        .list-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 14px 12px; 
+            border-bottom: 1px solid var(--gray-light); 
+            font-size: 15px; 
+            border-radius: 12px; 
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+        
+        .list-item:last-child { border-bottom: none; }
+        .list-item:hover { background: var(--gray-light); }
+        
+        .priority-item { 
+            background: linear-gradient(90deg, var(--highlight) 0%, #ffffff 100%);
+            border-left: 4px solid var(--border-priority); 
+            margin-bottom: 4px;
+        }
+
+        /* Switch toggle */
+        .switch { position: relative; display: inline-block; width: 52px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .25s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Navegação inferior */
+        .bottom-nav { 
+            position: fixed; bottom: 0; width: 100%; max-width: 600px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); display: flex; 
+            justify-content: space-around; padding: 12px 0 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); 
+            z-index: 1000; border-top: 1px solid var(--border);
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); cursor: pointer; flex: 1; transition: all 0.2s; font-size: 11px; font-weight: 500; gap: 3px; }
+        .nav-item i { font-size: 26px; margin-bottom: 2px; }
+        .nav-item.active { color: var(--primary); transform: translateY(-2px); font-weight: 600; }
+
+        /* Toast notification */
+        .toast { 
+            visibility: hidden; min-width: 220px; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(8px);
+            color: #fff; text-align: center; border-radius: 40px; padding: 14px 20px; position: fixed; 
+            z-index: 3000; left: 50%; bottom: 90px; transform: translateX(-50%); font-weight: 500; box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .toast.show { visibility: visible; animation: fadeinout 2.8s forwards; }
+        @keyframes fadeinout { 0% { bottom: 70px; opacity: 0; } 15% { bottom: 90px; opacity: 1; } 85% { bottom: 90px; opacity: 1; } 100% { bottom: 70px; opacity: 0; } }
+
+        /* Modais */
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; 
+        }
+        .modal-content { 
+            background: var(--card); padding: 24px; border-radius: 24px; width: 90%; max-width: 380px; 
+            text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: scaleIn 0.2s ease-out;
+        }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Badges */
+        .badge-pendente { background: #fee2e2; color: #991b1b; padding: 5px 12px; border-radius: 30px; font-weight: 600; font-size: 12px; }
+        .badge-pago { background: #dcfce7; color: #166534; padding: 5px 12px; border-radius: 30px; font-weight: 600; font-size: 12px; }
+
+        /* Histórico e Tabelas */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+        th { color: var(--primary-dark); font-size: 13px; font-weight: 600; background: var(--gray-light); text-transform: uppercase; letter-spacing: 0.5px; }
+        .history-card { padding: 14px 12px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; border-radius: 10px; }
+        .history-card:hover { background: var(--gray-light); }
+        .history-date { font-weight: 700; color: var(--primary); font-size: 15px; }
+        .history-task { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+        .history-count { background: var(--primary-light); color: white; padding: 5px 12px; border-radius: 30px; font-size: 13px; font-weight: 600; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--gray-light); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div id="tab-home" class="section active">
+            <div class="card">
+                <div class="card-title">
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <i class="material-icons">calendar_today</i> Data e Tarefa
+                    </div>
+                </div>
+                <input type="date" id="data" onchange="carregarDia()">
+                
+                <div class="input-wrapper">
+                    <input type="text" id="tarefa" placeholder="Ex: Cobrir cana" oninput="atualizarSugestoesTarefas()" onfocus="atualizarSugestoesTarefas()" autocomplete="off">
+                    <div id="tarefas-sugestoes" class="sugestoes-box"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <i class="material-icons">airport_shuttle</i> Vagas na Van
+                    </div>
+                    <div id="contadorVan" class="lotacao-badge">0/12</div>
+                </div>
+                <p style="font-size: 12px; color: var(--text-secondary); margin: -5px 0 12px 0; display: flex; align-items: center; gap: 5px;">
+                    <i class="material-icons" style="font-size: 14px; color: var(--border-priority);">star</i>
+                    Destaque verde: Prioridade por frequência (7 dias)
+                </p>
+                <div id="listaChamada"></div>
+            </div>
+
+            <button class="btn" onclick="salvar()">
+                <i class="material-icons">save</i> Salvar Lista do Dia
+            </button>
+            <button id="btnCopiar" class="btn btn-sutil" style="display: none;" onclick="copiarWhatsApp()">
+                <i class="material-icons">content_copy</i> Copiar Lista
+            </button>
+        </div>
+
+
+        <div id="tab-equipe" class="section">
+            
+            <div id="viewEquipeLista">
+                <div class="card">
+                    <div class="card-title">
+                        <i class="material-icons">person_add</i> Novo Trabalhador
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="novoNome" placeholder="Digite o nome..." style="margin-bottom:0" autocomplete="off">
+                        <button class="btn" style="width: 60px; padding: 14px;" onclick="addTrabalhador()">
+                            <i class="material-icons">add</i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">
+                        <i class="material-icons">groups</i> Lista da Equipe
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: -5px 0 12px 0;">
+                        <i class="material-icons" style="font-size: 14px; vertical-align: middle;">touch_app</i>
+                        Toque no nome para ver pendências ou acertar
+                    </p>
+                    <div id="equipeLista"></div>
+                </div>
+            </div>
+
+            <div id="viewPerfilTrabalhador" style="display: none;">
+                <button class="btn-sutil" style="margin-top:0; margin-bottom: 16px; border:none; padding:0; display:flex; gap:5px; font-weight:600; color:var(--text-secondary);" onclick="fecharPerfil()">
+                    <i class="material-icons">arrow_back</i> Voltar para Equipe
+                </button>
+                
+                <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white;">
+                    <div style="display:flex; align-items:center; gap:16px;">
+                        <i class="material-icons" style="font-size: 48px; background: rgba(255,255,255,0.15); padding: 12px; border-radius: 18px;">person</i>
+                        <h2 id="perfilNome" style="margin: 0; font-size: 22px; font-weight: 700;">Nome</h2>
+                    </div>
+                </div>
+
+                <div class="card" style="background: var(--highlight); border-left: 5px solid var(--border-priority);">
+                    <div class="card-title">
+                        <i class="material-icons">calculate</i> Acerto Rápido
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: -5px 0 12px 0;">
+                        Calcula apenas os dias que ainda não foram pagos
+                    </p>
+                    <input type="number" id="perfilValorDiaria" placeholder="Valor da diária (R$)" oninput="calcularAcertoPerfil()">
+                    <p id="perfilTotalAcerto" style="margin: 8px 0 0 0; font-size: 17px; font-weight: 600;">
+                        Total a receber: R$ 0,00
+                    </p>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="material-icons">assignment_late</i> A Receber (Pendentes)</div>
+                    <div id="perfilPendentesArea"></div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title"><i class="material-icons">task_alt</i> Já Pagos (Histórico)</div>
+                    <div id="perfilPagosArea"></div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title"><i class="material-icons">edit_note</i> Observações</div>
+                    <textarea id="perfilAnotacoes" rows="4" placeholder="Registre vales, produção..."></textarea>
+                    <button class="btn" onclick="salvarAnotacoesPerfil()">
+                        <i class="material-icons">save</i> Salvar Anotações
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-painel" class="section">
+            <div class="card">
+                <div class="card-title"><i class="material-icons">history</i> Últimas Listas Salvas</div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                    <input type="month" id="filtroHistMes" onchange="renderHistorico()" style="margin-bottom:0; padding:12px; font-size: 14px;" title="Filtrar por Mês">
+                    <select id="filtroHistServico" onchange="renderHistorico()" style="margin-bottom:0; padding:12px; font-size: 14px;">
+                        <option value="">Todos os serviços</option>
+                    </select>
+                </div>
+                
+                <div id="listaHistoricoCompleto" style="max-height: 350px; overflow-y: auto; border-radius: 14px; border: 1px solid var(--border);"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i class="material-icons">analytics</i> Resumo Total do Mês</div>
+                <input type="month" id="filtroMesFechamento" style="margin-bottom: 12px;">
+                <button class="btn" onclick="gerarFechamento()">
+                    <i class="material-icons">search</i> Gerar Tabela Geral
+                </button>
+                
+                <div id="resultadoArea" style="display:none; margin-top: 20px;">
+                    <table>
+                        <thead><tr><th>Nome</th><th style="text-align:right">Dias Totais</th></tr></thead>
+                        <tbody id="tabelaCorpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i class="material-icons">summarize</i> Acumulado por Serviço</div>
+                <div id="listaServicosArea"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="nav('tab-home', this)">
+            <i class="material-icons">fact_check</i><span>Dia</span>
+        </div>
+        <div class="nav-item" onclick="nav('tab-equipe', this)">
+            <i class="material-icons">group</i><span>Equipe</span>
+        </div>
+        <div class="nav-item" onclick="nav('tab-painel', this)">
+            <i class="material-icons">dashboard</i><span>Painel</span>
+        </div>
+    </nav>
+
+    <div id="modalPreviewDia" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 8px;">
+                <h3 id="previewDataTitulo" style="margin: 0; color: var(--primary); font-size: 22px; font-weight: 700;"></h3>
+                <i class="material-icons" style="color:var(--text-secondary); cursor:pointer; padding: 5px;" onclick="fecharPreviewDia()">close</i>
+            </div>
+            <p id="previewTarefa" style="color:var(--text-secondary); margin:0 0 15px 0; font-weight:500; font-size: 15px;"></p>
+            
+            <div id="previewListaNomes" style="max-height: 280px; overflow-y: auto; margin: 10px 0; font-size: 15px; border-top: 1px solid var(--border); padding-top: 12px;"></div>
+            
+            <div style="display:flex; gap:10px; margin-top: 20px;">
+                <button class="btn" style="flex:1; padding: 14px;" onclick="copiarPreviewDia()">
+                    <i class="material-icons">content_copy</i> Copiar
+                </button>
+                <button class="btn btn-outline-danger" style="flex:1; margin-top:0; padding: 14px;" onclick="excluirDiaDoPreview()">
+                    <i class="material-icons">delete</i> Apagar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalSistema" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalSistemaTitulo" style="margin: 0 0 10px 0; color: var(--primary-dark); font-size: 20px;">Aviso</h3>
+            <p id="modalSistemaMensagem" style="color: var(--text-secondary); margin: 0 0 24px 0; font-size: 15px; line-height: 1.5;"></p>
+            <div style="display:flex; gap:10px;">
+                <button id="modalSistemaCancel" class="btn btn-sutil" style="margin-top:0; padding:14px; display:none;" onclick="fecharModalSistema()">Cancelar</button>
+                <button id="modalSistemaConfirm" class="btn" style="padding:14px;" onclick="confirmarModalSistema()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">📋 Copiado!</div>
+
+    <script>
+        function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
+        function setDB(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+        // --- SISTEMA DE MODAIS CUSTOMIZADOS ---
+        let callbackSistema = null;
+
+        function showAppModal(titulo, mensagem, isConfirm, callback) {
+            document.getElementById('modalSistemaTitulo').innerText = titulo;
+            document.getElementById('modalSistemaMensagem').innerText = mensagem;
+            
+            if (isConfirm) {
+                document.getElementById('modalSistemaCancel').style.display = 'block';
+                document.getElementById('modalSistemaConfirm').innerText = 'Confirmar';
+            } else {
+                document.getElementById('modalSistemaCancel').style.display = 'none';
+                document.getElementById('modalSistemaConfirm').innerText = 'Entendi';
+            }
+            
+            callbackSistema = callback;
+            document.getElementById('modalSistema').style.display = 'flex';
+        }
+
+        function fecharModalSistema() {
+            document.getElementById('modalSistema').style.display = 'none';
+            callbackSistema = null;
+        }
+
+        function confirmarModalSistema() {
+            if (callbackSistema) callbackSistema();
+            fecharModalSistema();
+        }
+
+        // --- NAVEGAÇÃO ---
+        function nav(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active');
+            
+            if(id === 'tab-equipe') { fecharPerfil(); renderEquipe(); }
+            if(id === 'tab-painel') { atualizarFiltroServicosHist(); renderHistorico(); renderServicosGeral(); }
+        }
+
+        // --- SUGESTÕES DE TAREFAS CUSTOMIZADAS ---
+        function atualizarSugestoesTarefas() {
+            const db = getDB('diarias');
+            const box = document.getElementById('tarefas-sugestoes');
+            const inputVal = document.getElementById('tarefa').value.toLowerCase();
+            
+            let tarefas = [...new Set(db.map(d => d.tarefa?.trim()).filter(t => t))];
+            
+            if (inputVal) {
+                tarefas = tarefas.filter(t => t.toLowerCase().includes(inputVal));
+            }
+
+            if (tarefas.length > 0) {
+                box.innerHTML = tarefas.map(t => 
+                    `<div class="sugestao-item" onclick="selecionarSugestao('${t.replace(/'/g, "\\'")}')">
+                        <i class="material-icons">history</i> ${t}
+                     </div>`
+                ).join('');
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        function selecionarSugestao(texto) {
+            document.getElementById('tarefa').value = texto;
+            document.getElementById('tarefas-sugestoes').style.display = 'none';
+        }
+
+        // Esconder sugestões ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (e.target.id !== 'tarefa') {
+                document.getElementById('tarefas-sugestoes').style.display = 'none';
+            }
+        });
+
+        // --- LISTA DO DIA ---
+        function carregarDia() {
+            const dt = document.getElementById('data').value;
+            if (!dt) return;
+            const db = getDB('diarias');
+            let equipe = getDB('equipe');
+            const registroHoje = db.find(x => x.data === dt);
+            const cham = document.getElementById('listaChamada');
+
+            const dataRef = new Date(dt + 'T12:00:00');
+            const frequencia = {};
+            equipe.forEach(n => frequencia[n] = 0);
+
+            for(let i=1; i<=7; i++) {
+                const d = new Date(dataRef);
+                d.setDate(d.getDate() - i);
+                const dataString = d.toISOString().split('T')[0];
+                const reg = db.find(x => x.data === dataString);
+                if(reg) reg.presentes.forEach(p => { if(frequencia[p] !== undefined) frequencia[p]++; });
+            }
+
+            equipe.sort((a,b) => (frequencia[b] - frequencia[a]) || a.localeCompare(b));
+
+            cham.innerHTML = equipe.map((n, index) => {
+                const isPriority = (index < 12);
+                const styleClass = isPriority ? 'priority-item' : '';
+                const icon = isPriority ? '<i class="material-icons" style="font-size:16px; color:var(--border-priority); margin-left:8px">stars</i>' : '';
+                return `
+                <div class="list-item ${styleClass}">
+                    <span>${index + 1}. ${n} ${icon}</span>
+                    <label class="switch">
+                        <input type="checkbox" class="presenca" value="${n}" onchange="atualizarContadorVan()">
+                        <span class="slider"></span>
+                    </label>
+                </div>`;
+            }).join('');
+
+            if (registroHoje) {
+                document.getElementById('tarefa').value = registroHoje.tarefa || '';
+                document.querySelectorAll('.presenca').forEach(c => {
+                    if (registroHoje.presentes.includes(c.value)) c.checked = true;
+                });
+                document.getElementById('btnCopiar').style.display = 'flex';
+            } else {
+                document.getElementById('btnCopiar').style.display = 'none';
+                document.getElementById('tarefa').value = '';
+            }
+            atualizarContadorVan();
+        }
+
+        function atualizarContadorVan() {
+            const total = document.querySelectorAll('.presenca:checked').length;
+            const el = document.getElementById('contadorVan');
+            el.innerText = `${total}/12`;
+            total > 12 ? el.classList.add('lotacao-cheia') : el.classList.remove('lotacao-cheia');
+        }
+
+        function salvar() {
+            const dt = document.getElementById('data').value;
+            const tr = document.getElementById('tarefa').value.trim();
+            const pres = Array.from(document.querySelectorAll('.presenca:checked')).map(c => c.value);
+            
+            if(!dt) return showAppModal("Atenção", "Selecione a data antes de salvar!", false);
+            
+            let db = getDB('diarias');
+            const registroAntigo = db.find(x => x.data === dt);
+            const pagosAntigos = registroAntigo ? (registroAntigo.pagos || []) : []; 
+
+            db = db.filter(x => x.data !== dt);
+            db.push({data: dt, tarefa: tr, presentes: pres, pagos: pagosAntigos});
+            setDB('diarias', db);
+            
+            showToast("✅ Lista salva!");
+            carregarDia();
+        }
+
+        function copiarWhatsApp() {
+            const dt = document.getElementById('data').value;
+            const reg = getDB('diarias').find(x => x.data === dt);
+            if(!reg) return;
+            const [a, m, d] = dt.split('-');
+            let txt = `${d}/${m}\n\n`;
+            if (reg.tarefa) { txt += `• ${reg.tarefa}\n\n`; } else { txt += `• Geral\n\n`; }
+            reg.presentes.forEach((n, i) => txt += `${i+1} - ${n}\n`);
+            navigator.clipboard.writeText(txt);
+            showToast("📋 Lista copiada!");
+        }
+
+        // --- SISTEMA DE EQUIPE E PERFIL ---
+        let trabalhadorAtual = "";
+        let totalDiasPendentesPerfilAtual = 0;
+
+        function abrirPerfil(nome) {
+            trabalhadorAtual = nome;
+            document.getElementById('viewEquipeLista').style.display = 'none';
+            document.getElementById('viewPerfilTrabalhador').style.display = 'block';
+            document.getElementById('perfilNome').innerText = nome;
+            
+            atualizarListasPerfil();
+            
+            document.getElementById('perfilAnotacoes').value = localStorage.getItem('nota_' + nome) || '';
+            document.getElementById('perfilValorDiaria').value = '';
+            calcularAcertoPerfil();
+        }
+
+        function atualizarListasPerfil() {
+            const db = getDB('diarias');
+            let pendentes = {};
+            let pagos = {};
+            totalDiasPendentesPerfilAtual = 0;
+            
+            db.forEach(dia => {
+                if(dia.presentes.includes(trabalhadorAtual)) {
+                    let t = dia.tarefa ? dia.tarefa.trim() : "Geral";
+                    dia.pagos = dia.pagos || [];
+                    
+                    if(dia.pagos.includes(trabalhadorAtual)) {
+                        pagos[t] = (pagos[t] || 0) + 1;
+                    } else {
+                        pendentes[t] = (pendentes[t] || 0) + 1;
+                        totalDiasPendentesPerfilAtual++;
+                    }
+                }
+            });
+
+            document.getElementById('perfilPendentesArea').innerHTML = Object.entries(pendentes).sort((a,b)=>b[1]-a[1]).map(e => `
+                <div class="list-item" style="padding: 12px 0;">
+                    <div>
+                        <b style="color: var(--primary-dark); font-size: 16px;">${e[0]}</b><br>
+                        <span class="badge-pendente">${e[1]} dias p/ receber</span>
+                    </div>
+                    <button class="btn-zerar" onclick="zerarServico('${e[0]}')">Zerar</button>
+                </div>
+            `).join('') || "<p style='text-align:center; color:var(--text-secondary); font-size:14px; padding: 15px;'>✅ Tudo acertado, sem pendências!</p>";
+
+            document.getElementById('perfilPagosArea').innerHTML = Object.entries(pagos).sort((a,b)=>b[1]-a[1]).map(e => `
+                <div class="list-item" style="padding: 12px 0;">
+                    <b style="font-size: 16px;">${e[0]}</b> 
+                    <span class="badge-pago">${e[1]} dias já pagos</span>
+                </div>
+            `).join('') || "<p style='text-align:center; color:var(--text-secondary); font-size:14px; padding: 15px;'>Nenhum histórico de pagamento.</p>";
+        }
+
+        function zerarServico(servico) {
+            showAppModal("Acertar Serviço", `O pagamento de "${servico}" para ${trabalhadorAtual} já foi repassado? Ao confirmar, os dias irão para o histórico de "Já Pagos".`, true, () => {
+                let db = getDB('diarias');
+                db.forEach(dia => {
+                    let t = dia.tarefa ? dia.tarefa.trim() : "Geral";
+                    if(t === servico && dia.presentes.includes(trabalhadorAtual)) {
+                        dia.pagos = dia.pagos || [];
+                        if(!dia.pagos.includes(trabalhadorAtual)) {
+                            dia.pagos.push(trabalhadorAtual);
+                        }
+                    }
+                });
+                setDB('diarias', db);
+                
+                atualizarListasPerfil();
+                calcularAcertoPerfil();
+                showToast(`✅ Acerto concluído!`);
+            });
+        }
+
+        function calcularAcertoPerfil() {
+            const val = parseFloat(document.getElementById('perfilValorDiaria').value) || 0;
+            const total = totalDiasPendentesPerfilAtual * val;
+            document.getElementById('perfilTotalAcerto').innerHTML = `Total a receber (${totalDiasPendentesPerfilAtual} dias): <span style="color: var(--primary);">R$ ${total.toFixed(2).replace('.', ',')}</span>`;
+        }
+
+        function fecharPerfil() {
+            document.getElementById('viewPerfilTrabalhador').style.display = 'none';
+            document.getElementById('viewEquipeLista').style.display = 'block';
+            trabalhadorAtual = "";
+        }
+
+        function salvarAnotacoesPerfil() {
+            if(!trabalhadorAtual) return;
+            localStorage.setItem('nota_' + trabalhadorAtual, document.getElementById('perfilAnotacoes').value);
+            showToast('✅ Anotações salvas!');
+        }
+
+        function renderEquipe() {
+            let eq = getDB('equipe').sort((a,b) => a.localeCompare(b));
+            document.getElementById('equipeLista').innerHTML = eq.map(n => `
+                <div class="list-item" onclick="abrirPerfil('${n}')" style="cursor: pointer;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <i class="material-icons" style="color:var(--primary); font-size:28px;">account_circle</i>
+                        <b style="font-size: 16px;">${n}</b>
+                    </div>
+                    <i class="material-icons" style="color:var(--danger); padding:8px; cursor:pointer;" onclick="event.stopPropagation(); removerEq('${n}')">delete_outline</i>
+                </div>
+            `).join('');
+        }
+
+        function addTrabalhador() {
+            const input = document.getElementById('novoNome');
+            const n = input.value.trim();
+            if(!n) return;
+            let eq = getDB('equipe');
+            if(eq.includes(n)) return showAppModal("Atenção", "Este trabalhador já está na equipe!", false);
+            
+            eq.push(n);
+            setDB('equipe', eq);
+            input.value = '';
+            renderEquipe();
+            carregarDia();
+        }
+
+        function removerEq(n) {
+            showAppModal("Remover Trabalhador", `Remover ${n} do aplicativo? O histórico de trabalho dele será mantido nos relatórios.`, true, () => {
+                setDB('equipe', getDB('equipe').filter(x => x !== n));
+                renderEquipe();
+                carregarDia();
+            });
+        }
+
+        // --- PAINEL: HISTÓRICO E RESUMOS ---
+        let diaPreviewAtual = null;
+
+        function atualizarFiltroServicosHist() {
+            const tarefas = [...new Set(getDB('diarias').map(d => d.tarefa?.trim() || "Geral").filter(t => t))];
+            document.getElementById('filtroHistServico').innerHTML = '<option value="">Todos os serviços</option>' + tarefas.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        function renderHistorico() {
+            let db = getDB('diarias');
+            const container = document.getElementById('listaHistoricoCompleto');
+            const filtroMes = document.getElementById('filtroHistMes').value;
+            const filtroServico = document.getElementById('filtroHistServico').value;
+
+            if (filtroMes) db = db.filter(dia => dia.data.startsWith(filtroMes));
+            if (filtroServico) db = db.filter(dia => { let t = dia.tarefa ? dia.tarefa.trim() : "Geral"; return t === filtroServico; });
+
+            if (db.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:var(--text-secondary); padding: 20px;'>Nenhuma lista encontrada.</p>";
+                return;
+            }
+
+            const ordenado = [...db].sort((a,b) => b.data.localeCompare(a.data));
+            container.innerHTML = ordenado.map(dia => {
+                const [ano, mes, d] = dia.data.split('-');
+                return `
+                    <div class="history-card" onclick="abrirPreviewDia('${dia.data}')">
+                        <div>
+                            <div class="history-date">${d}/${mes}</div>
+                            <div class="history-task">${dia.tarefa || 'Serviço Geral'}</div>
+                        </div>
+                        <div class="history-count">${dia.presentes.length} p.</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function abrirPreviewDia(dataString) {
+            diaPreviewAtual = dataString;
+            const reg = getDB('diarias').find(x => x.data === dataString);
+            if(!reg) return;
+
+            const [ano, mes, d] = dataString.split('-');
+            document.getElementById('previewDataTitulo').innerText = `${d}/${mes}/${ano}`;
+            document.getElementById('previewTarefa').innerText = reg.tarefa ? `• ${reg.tarefa}` : `• Serviço Geral`;
+
+            const listaHTML = reg.presentes.map((n, i) => `<div style="padding: 8px 0; border-bottom: 1px solid var(--gray-light);">${i+1}. ${n}</div>`).join('');
+            document.getElementById('previewListaNomes').innerHTML = listaHTML;
+
+            document.getElementById('modalPreviewDia').style.display = 'flex';
+        }
+
+        function fecharPreviewDia() {
+            document.getElementById('modalPreviewDia').style.display = 'none';
+        }
+
+        function copiarPreviewDia() {
+            const reg = getDB('diarias').find(x => x.data === diaPreviewAtual);
+            if(!reg) return;
+            const [ano, mes, d] = diaPreviewAtual.split('-');
+            let txt = `${d}/${mes}\n\n`;
+            if (reg.tarefa) { txt += `• ${reg.tarefa}\n\n`; } else { txt += `• Geral\n\n`; }
+            reg.presentes.forEach((n, i) => txt += `${i+1} - ${n}\n`);
+            navigator.clipboard.writeText(txt);
+            fecharPreviewDia();
+            showToast("📋 Lista copiada!");
+        }
+
+        function excluirDiaDoPreview() {
+            showAppModal("Apagar Dia", "Tem certeza que deseja apagar o registro inteiro deste dia?", true, () => {
+                let db = getDB('diarias').filter(x => x.data !== diaPreviewAtual);
+                setDB('diarias', db);
+                fecharPreviewDia();
+                renderHistorico(); 
+                if (document.getElementById('data').value === diaPreviewAtual) carregarDia(); 
+                showToast("🗑️ Dia apagado!");
+            });
+        }
+
+        function renderServicosGeral() {
+            const resumo = {};
+            getDB('diarias').forEach(dia => {
+                const t = dia.tarefa || "Geral";
+                resumo[t] = (resumo[t] || 0) + dia.presentes.length;
+            });
+            document.getElementById('listaServicosArea').innerHTML = Object.entries(resumo).map(e => `
+                <div class="list-item" style="padding: 12px 0;">
+                    <b style="font-size: 15px;">${e[0]}</b> 
+                    <span style="background: var(--gray-light); padding: 5px 14px; border-radius: 30px; font-weight: 600;">${e[1]} dias totais</span>
+                </div>
+            `).join('');
+        }
+
+        function gerarFechamento() {
+            const mes = document.getElementById('filtroMesFechamento').value;
+            if(!mes) return showAppModal("Aviso", "Selecione um mês para gerar o fechamento!", false);
+            
+            const conta = {}; 
+            getDB('diarias').filter(x => x.data.startsWith(mes)).forEach(d => {
+                d.presentes.forEach(p => { conta[p] = (conta[p] || 0) + 1; });
+            });
+            
+            document.getElementById('tabelaCorpo').innerHTML = Object.entries(conta).sort((a,b)=>b[1]-a[1]).map(e => `<tr><td>${e[0]}</td><td style="text-align:right">${e[1]} dias</td></tr>`).join('') || `<tr><td colspan="2" style="text-align:center; color:var(--text-secondary);">Sem dados neste mês.</td></tr>`;
+            document.getElementById('resultadoArea').style.display = 'block';
+        }
+
+        function showToast(m) {
+            const t = document.getElementById('toast'); 
+            t.innerText = m;
+            t.classList.add('show'); 
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        // Inicialização
+        document.getElementById('data').valueAsDate = new Date();
+        renderEquipe();
+        carregarDia();
+    </script>
+</body>
+</html>
