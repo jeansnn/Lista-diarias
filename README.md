@@ -38,4 +38,4 @@ Este é um projeto **Vanilla Web** (HTML, CSS e JavaScript puros). Não requer b
 
 1. Faça o clone deste repositório:
    ```bash
-   git clone [https://github.com/SEU_USUARIO/nome-do-repositorio.git](https://github.com/SEU_USUARIO/nome-do-repositorio.git)
+   git clone [https://github.com/jeansnn/Lista-diarias.git](https://github.com/jeansnn/Lista-diarias.git)
